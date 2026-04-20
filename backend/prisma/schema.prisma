@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SourcePlatform {
+  UNSTOP
+  DEVFOLIO
+  HACK2SKILL
+  DEVPOST
+  MLH
+  HACKEREARTH
+  EVENTBRITE
+  COLLEGE_PORTAL
+  INCUBATOR_PORTAL
+  INTERNAL
+}
+
+enum HackathonStatus {
+  UPCOMING
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum EventFormat {
+  REMOTE
+  IRL
+  HYBRID
+  UNKNOWN
+}
+
+enum ScrapeRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL_SUCCESS
+  FAILED
+}
+
+enum AlertFrequency {
+  REALTIME
+  DAILY
+  WEEKLY
+}
+
+model Hackathon {
+  id                 String              @id @default(cuid())
+  slug               String              @unique
+  title              String
+  summary            String?
+  description        String?
+  host               String?
+  sourcePlatform     SourcePlatform
+  sourceUrl          String
+  canonicalUrl       String?             @unique
+  dedupeFingerprint  String              @unique
+  theme              String?
+  format             EventFormat         @default(UNKNOWN)
+  location           String?
+  country            String?
+  timezone           String?
+  deadline           DateTime?
+  startDate          DateTime?
+  endDate            DateTime?
+  prizeLabel         String?
+  teamSizeMin        Int?
+  teamSizeMax        Int?
+  status             HackathonStatus     @default(OPEN)
+  isStudentFriendly  Boolean             @default(false)
+  isBeginnerFriendly Boolean             @default(false)
+  techStack          String[]            @default([])
+  rankingScore       Float               @default(0)
+  trendingScore      Float               @default(0)
+  lastScrapedAt      DateTime?
+  rawPayload         Json?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  sourceReferences   SourceReference[]
+  savedBy            SavedHackathon[]
+  subscriptions      AlertSubscription[]
+  tags               HackathonTag[]
+
+  @@index([deadline])
+  @@index([sourcePlatform])
+  @@index([status])
+  @@index([format])
+  @@index([theme])
+  @@index([rankingScore(sort: Desc)])
+  @@index([trendingScore(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model SourceReference {
+  id             String         @id @default(cuid())
+  sourcePlatform SourcePlatform
+  sourceId       String?
+  sourceUrl      String
+  canonicalUrl   String?
+  isPrimary      Boolean        @default(false)
+  firstSeenAt    DateTime       @default(now())
+  lastSeenAt     DateTime       @default(now())
+  hackathonId    String
+  hackathon      Hackathon      @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([sourcePlatform, sourceUrl])
+  @@index([hackathonId])
+}
+
+model ScrapeRun {
+  id            String          @id @default(cuid())
+  sourcePlatform SourcePlatform
+  status        ScrapeRunStatus @default(RUNNING)
+  startedAt     DateTime        @default(now())
+  completedAt   DateTime?
+  durationMs    Int?
+  itemsScraped  Int             @default(0)
+  itemsStored   Int             @default(0)
+  errorMessage  String?
+  metadata      Json?
+
+  @@index([sourcePlatform])
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SavedHackathon {
+  id              String    @id @default(cuid())
+  userExternalId  String
+  hackathonId     String
+  createdAt       DateTime  @default(now())
+  hackathon       Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userExternalId, hackathonId])
+  @@index([userExternalId])
+  @@index([hackathonId])
+}
+
+model AlertSubscription {
+  id              String         @id @default(cuid())
+  userExternalId  String
+  email           String?
+  frequency       AlertFrequency @default(DAILY)
+  criteria        Json?
+  isActive        Boolean        @default(true)
+  hackathonId     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  hackathon       Hackathon?     @relation(fields: [hackathonId], references: [id], onDelete: SetNull)
+
+  @@index([userExternalId])
+  @@index([frequency])
+  @@index([isActive])
+}
+
+model Tag {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  hackathons HackathonTag[]
+}
+
+model HackathonTag {
+  hackathonId String
+  tagId       String
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([hackathonId, tagId])
+  @@index([tagId])
+}

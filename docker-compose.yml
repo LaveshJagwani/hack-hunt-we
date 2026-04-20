@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hackhunt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hackhunt
+      POSTGRES_PASSWORD: hackhunt
+      POSTGRES_DB: hackhunt
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackhunt -d hackhunt"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: hackhunt-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hackhunt-backend-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://hackhunt:hackhunt@postgres:5432/hackhunt?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://localhost:5173
+    command: sh -c "npm run prisma:migrate:deploy && npm run start:prod"
+    ports:
+      - "3000:3000"
+
+  backend-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hackhunt-backend-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://hackhunt:hackhunt@postgres:5432/hackhunt?schema=public
+      REDIS_URL: redis://redis:6379
+    command: sh -c "npm run prisma:migrate:deploy && npm run start:worker:prod"
+
+volumes:
+  postgres_data:
+  redis_data:
