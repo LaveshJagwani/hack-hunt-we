@@ -6,7 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   Max,
   Min,
   validateSync,
@@ -25,7 +25,11 @@ class EnvVariables {
   @IsNotEmpty()
   DATABASE_URL!: string;
 
-  @IsUrl({ require_tld: false })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^rediss?:\/\//, {
+    message: 'REDIS_URL must start with redis:// or rediss://',
+  })
   REDIS_URL!: string;
 
   @IsString()
