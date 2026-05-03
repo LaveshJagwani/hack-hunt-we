@@ -4,10 +4,9 @@ const hackathonSchema = new mongoose.Schema({
   title: { type: String, required: true },
   platform: { type: String, required: true },
   link: { type: String, required: true, unique: true },
-  deadline: { type: Date },
+  deadline: { type: String },
   mode: { type: String, default: 'online' },
-  tags: [String],
-  createdAt: { type: Date, default: Date.now }
-});
+  tags: [{ type: String }]
+}, { timestamps: true });
 
 module.exports = mongoose.model('Hackathon', hackathonSchema);

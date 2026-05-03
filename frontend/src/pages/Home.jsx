@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import HackathonCard from '../components/HackathonCard';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const Home = () => {
   const [hackathons, setHackathons] = useState([]);
@@ -99,6 +99,9 @@ const Home = () => {
             <option value="Devfolio">Devfolio</option>
             <option value="Unstop">Unstop</option>
             <option value="Hack2Skill">Hack2Skill</option>
+            <option value="Devpost">Devpost</option>
+            <option value="MLH">MLH</option>
+            <option value="HackerEarth">HackerEarth</option>
           </select>
 
           <select value={filterMode} onChange={onModeChange}>
@@ -116,7 +119,7 @@ const Home = () => {
         ) : hackathons.length > 0 ? (
           <div className="grid">
             {hackathons.map(hk => (
-              <HackathonCard key={hk._id} hackathon={hk} />
+               <HackathonCard key={hk._id} hackathon={hk} />
             ))}
           </div>
         ) : (

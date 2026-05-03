@@ -1,30 +1,20 @@
+const express = require('express');
+const router = express.Router();
 const Hackathon = require('../models/Hackathon');
+const { updateDatabase } = require('../services/scheduler');
 
-// GET /hackathons -> return all
-const getHackathons = async (req, res) => {
+// GET /hackathons -> returns stored data
+router.get('/hackathons', async (req, res) => {
   try {
     const hackathons = await Hackathon.find().sort({ createdAt: -1 });
-    res.json(hackathons);
+    res.json({ data: hackathons, count: hackathons.length });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch hackathons' });
   }
-};
-
-// GET /hackathons/:id -> detailed view
-const getHackathonById = async (req, res) => {
-  try {
-    const hackathon = await Hackathon.findById(req.params.id);
-    if (!hackathon) {
-      return res.status(404).json({ error: 'Hackathon not found' });
-    }
-    res.json(hackathon);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch hackathon' });
-  }
-};
+});
 
 // GET /search?q= -> search by title/tags
-const searchHackathons = async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const query = req.query.q || '';
     const hackathons = await Hackathon.find({
@@ -33,14 +23,14 @@ const searchHackathons = async (req, res) => {
         { tags: { $regex: query, $options: 'i' } }
       ]
     }).sort({ createdAt: -1 });
-    res.json(hackathons);
+    res.json({ data: hackathons, count: hackathons.length });
   } catch (error) {
     res.status(500).json({ error: 'Search failed' });
   }
-};
+});
 
 // GET /filter?platform=&mode=
-const filterHackathons = async (req, res) => {
+router.get('/filter', async (req, res) => {
   try {
     const { platform, mode } = req.query;
     const filter = {};
@@ -48,15 +38,22 @@ const filterHackathons = async (req, res) => {
     if (mode) filter.mode = { $regex: new RegExp(`^${mode}$`, 'i') };
 
     const hackathons = await Hackathon.find(filter).sort({ createdAt: -1 });
-    res.json(hackathons);
+    res.json({ data: hackathons, count: hackathons.length });
   } catch (error) {
     res.status(500).json({ error: 'Filter failed' });
   }
-};
+});
 
-module.exports = {
-  getHackathons,
-  getHackathonById,
-  searchHackathons,
-  filterHackathons
-};
+// GET /refresh -> triggers scraping manually
+router.get('/refresh', async (req, res) => {
+  try {
+    console.log('Manual refresh triggered.');
+    // Start non-blocking so the HTTP request doesn't timeout
+    updateDatabase(); 
+    res.json({ message: 'Scraping job started successfully. Check server logs for progress. Data will merge momentarily.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to trigger refresh' });
+  }
+});
+
+module.exports = router;

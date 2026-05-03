@@ -1,9 +1,9 @@
 import React from 'react';
 
 const HackathonCard = ({ hackathon }) => {
-  const formattedDate = hackathon.deadline
-    ? new Date(hackathon.deadline).toLocaleDateString()
-    : 'No deadline specified';
+  const formattedDate = hackathon.deadline && hackathon.deadline !== 'Check Website'
+    ? hackathon.deadline
+    : 'Check Website';
 
   return (
     <div className="card">
