@@ -12,6 +12,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Health check route
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'HackHunt API is running 🚀', endpoints: ['/api/hackathons'] });
+});
+
 // Routes
 // Note: For backwards compatibility with the existing MVP frontend, keep /api root and attach new router
 app.use('/api', hackathons);
