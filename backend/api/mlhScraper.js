@@ -1,13 +1,10 @@
-const puppeteer = require('puppeteer');
+const { launchBrowser } = require('./browserConfig');
 
 module.exports = async function scrapeMLH() {
   console.log('[Scraper] Starting MLH...');
   let browser;
   try {
-    browser = await puppeteer.launch({ 
-      headless: true, 
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] 
-    });
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/118.0.0.0 Safari/537.36");
     await page.goto('https://mlh.io/seasons/2024/events', { waitUntil: 'networkidle2', timeout: 60000 });

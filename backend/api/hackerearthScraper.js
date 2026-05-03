@@ -1,13 +1,10 @@
-const puppeteer = require('puppeteer');
+const { launchBrowser } = require('./browserConfig');
 
 module.exports = async function scrapeHackerEarth() {
   console.log('[Scraper] Starting HackerEarth...');
   let browser;
   try {
-    browser = await puppeteer.launch({ 
-      headless: true, 
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] 
-    });
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36");
     await page.goto('https://www.hackerearth.com/challenges/hackathon/', { waitUntil: 'networkidle2', timeout: 60000 });

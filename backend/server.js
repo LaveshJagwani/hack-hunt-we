@@ -8,28 +8,58 @@ const { initScheduler } = require('./services/scheduler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// CORS — allow deployed frontend and localhost dev
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL, // e.g. https://hackhunt-frontend.onrender.com
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
-// Health check route
+// Health check — so visiting the root URL shows API info
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'HackHunt API is running 🚀', endpoints: ['/api/hackathons'] });
+  res.json({
+    status: 'ok',
+    message: 'HackHunt API is running 🚀',
+    endpoints: [
+      'GET /api/hackathons',
+      'GET /api/search?q=<query>',
+      'GET /api/filter?platform=<platform>&mode=<mode>',
+      'GET /api/refresh',
+    ],
+  });
 });
 
 // Routes
-// Note: For backwards compatibility with the existing MVP frontend, keep /api root and attach new router
 app.use('/api', hackathons);
 
-// Database connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/hackhunt')
+// Database connection — crash fast on bad URI so Render surfaces the error
+if (!process.env.MONGO_URI) {
+  console.error('FATAL: MONGO_URI environment variable is not set.');
+  process.exit(1);
+}
+
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    
-    // Initialize Scheduler logic
     initScheduler();
   })
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 // Start Server
 app.listen(PORT, () => {
