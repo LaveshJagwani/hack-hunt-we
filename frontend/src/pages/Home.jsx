@@ -10,8 +10,8 @@ const Home = () => {
   const [filterPlatform, setFilterPlatform] = useState('');
   const [filterMode, setFilterMode] = useState('');
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
-  // Fetch initial data
   useEffect(() => {
     fetchHackathons();
   }, []);
@@ -20,7 +20,9 @@ const Home = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/hackathons`);
-      setHackathons(response.data);
+      const data = response.data.data || [];
+      setHackathons(data);
+      setTotalCount(response.data.count || data.length);
     } catch (error) {
       console.error('Error fetching hackathons:', error);
     } finally {
@@ -35,9 +37,10 @@ const Home = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/search?q=${searchQuery}`);
-      setHackathons(response.data);
-      // Reset filters since search overrides
+      const response = await axios.get(`${API_BASE_URL}/search?q=${encodeURIComponent(searchQuery)}`);
+      const data = response.data.data || [];
+      setHackathons(data);
+      setTotalCount(response.data.count || data.length);
       setFilterPlatform('');
       setFilterMode('');
     } catch (error) {
@@ -50,12 +53,14 @@ const Home = () => {
   const handleFilter = async (platform, mode) => {
     setLoading(true);
     try {
-      let queryUrl = `${API_BASE_URL}/filter?`;
-      if (platform) queryUrl += `platform=${platform}&`;
-      if (mode) queryUrl += `mode=${mode}`;
-      
-      const response = await axios.get(queryUrl);
-      setHackathons(response.data);
+      const params = new URLSearchParams();
+      if (platform) params.append('platform', platform);
+      if (mode) params.append('mode', mode);
+
+      const response = await axios.get(`${API_BASE_URL}/filter?${params.toString()}`);
+      const data = response.data.data || [];
+      setHackathons(data);
+      setTotalCount(response.data.count || data.length);
     } catch (error) {
       console.error('Error filtering:', error);
     } finally {
@@ -66,12 +71,14 @@ const Home = () => {
   const onPlatformChange = (e) => {
     const val = e.target.value;
     setFilterPlatform(val);
+    setSearchQuery('');
     handleFilter(val, filterMode);
   };
 
   const onModeChange = (e) => {
     const val = e.target.value;
     setFilterMode(val);
+    setSearchQuery('');
     handleFilter(filterPlatform, val);
   };
 
@@ -79,14 +86,19 @@ const Home = () => {
     <div className="container">
       <header className="header">
         <h1>HackHunt</h1>
-        <p>Find your next hackathon.</p>
+        <p>Find hackathons from multiple platforms in one place.</p>
+        <div className="stats-bar">
+          <div className="stat-item">
+            <span className="stat-number">{totalCount}</span> hackathons found
+          </div>
+        </div>
       </header>
 
       <div className="controls-section">
         <form onSubmit={handleSearch} className="search-bar">
-          <input 
-            type="text" 
-            placeholder="Search by title or tag..." 
+          <input
+            type="text"
+            placeholder="Search hackathons..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -115,15 +127,22 @@ const Home = () => {
 
       <main className="content">
         {loading ? (
-          <div className="loading">Loading hackathons...</div>
+          <div className="loading">
+            <div className="loading-spinner"></div>
+            <span className="loading-text">Loading...</span>
+          </div>
         ) : hackathons.length > 0 ? (
           <div className="grid">
             {hackathons.map(hk => (
-               <HackathonCard key={hk._id} hackathon={hk} />
+              <HackathonCard key={hk._id} hackathon={hk} />
             ))}
           </div>
         ) : (
-          <div className="no-results">No hackathons found matching your criteria.</div>
+          <div className="no-results">
+            <div className="no-results-icon">🔍</div>
+            <div className="no-results-title">No hackathons found</div>
+            <div className="no-results-subtitle">Try changing your search or filters.</div>
+          </div>
         )}
       </main>
     </div>
