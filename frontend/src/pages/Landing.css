@@ -1,0 +1,159 @@
+.landing-page {
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.landing-container {
+  width: min(1000px, 100%);
+  text-align: center;
+}
+
+.landing-header {
+  margin-bottom: 60px;
+}
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.landing-brand .brand-mark {
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
+}
+
+.landing-brand h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+.landing-tagline {
+  font-size: 1.25rem;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-bottom: 60px;
+}
+
+.landing-card {
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: left;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--blue);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
+
+.landing-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--blue);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.landing-card:hover::before {
+  transform: scaleX(1);
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 24px;
+}
+
+.landing-card h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.landing-card p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.card-cta {
+  font-weight: 900;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-cta-muted {
+  font-weight: 800;
+  color: var(--subtle);
+  background: var(--surface-soft);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.post-card.inactive {
+  opacity: 0.8;
+  cursor: default;
+}
+
+.post-card.inactive:hover {
+  transform: none;
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+.landing-footer {
+  color: var(--subtle);
+  font-size: 0.9rem;
+}
+
+.dark .landing-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 600px) {
+  .landing-brand h1 {
+    font-size: 2.5rem;
+  }
+  .landing-card {
+    padding: 30px;
+  }
+}

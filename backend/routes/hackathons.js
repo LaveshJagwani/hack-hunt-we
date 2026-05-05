@@ -161,6 +161,37 @@ function scoreHackathon(hackathon) {
   return score;
 }
 
+// POST /hackathons -> allow users to submit their own hackathon
+router.post('/hackathons', async (req, res) => {
+  try {
+    const { title, platform, link, deadline, mode, tags } = req.body;
+    
+    if (!title || !link) {
+      return res.status(400).json({ error: 'Title and link are required' });
+    }
+
+    const newHackathon = new Hackathon({
+      title,
+      platform: platform || 'User Submitted',
+      link,
+      deadline,
+      mode: mode || 'online',
+      tags: tags || []
+    });
+
+    await newHackathon.save();
+    res.status(201).json({ 
+      message: 'Hackathon posted successfully!', 
+      data: toClientHackathon(newHackathon) 
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ error: 'A hackathon with this link already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to post hackathon' });
+  }
+});
+
 // GET /hackathons -> returns stored data
 router.get('/hackathons', async (req, res) => {
   try {
