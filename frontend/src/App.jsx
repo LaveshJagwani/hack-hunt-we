@@ -43,9 +43,6 @@ function App() {
               <NavLink className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} to="/my-hackathons">
                 My Hackathons
               </NavLink>
-              <NavLink className="nav-link host-nav-btn" to="/host">
-                Host New
-              </NavLink>
             </div>
 
             <button

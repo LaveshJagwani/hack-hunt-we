@@ -17,35 +17,6 @@
   font-size: 1.1rem;
 }
 
-.host-stats {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 40px;
-}
-
-.stat-card {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 20px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-card strong {
-  font-size: 1.75rem;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.stat-card span {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 4px;
-  font-weight: 800;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

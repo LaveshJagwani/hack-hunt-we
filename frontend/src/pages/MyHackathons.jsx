@@ -43,23 +43,6 @@ const MyHackathons = () => {
         <p>Manage and track the hackathons you have posted on the platform.</p>
       </header>
 
-      {!loading && hackathons.length > 0 && (
-        <div className="host-stats">
-          <div className="stat-card">
-            <strong>{hackathons.length}</strong>
-            <span>Total Hosted</span>
-          </div>
-          <div className="stat-card">
-            <strong>{hackathons.filter(h => new Date(h.deadline) >= new Date()).length}</strong>
-            <span>Active Events</span>
-          </div>
-          <div className="stat-card">
-            <strong>{new Set(hackathons.flatMap(h => h.tags)).size}</strong>
-            <span>Unique Tags</span>
-          </div>
-        </div>
-      )}
-
       {loading ? (
         <div className="loading">
           <div className="loading-spinner"></div>
