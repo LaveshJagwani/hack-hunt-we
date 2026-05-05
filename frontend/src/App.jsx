@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { NavLink, Route, Routes } from 'react-router-dom';
 import Calendar from './pages/Calendar';
 import Explore from './pages/Explore';
@@ -5,6 +6,17 @@ import Home from './pages/Home';
 import './index.css';
 
 function App() {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.body.className = theme === 'dark' ? 'dark' : '';
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   return (
     <div className="app">
       <div className="site-shell">
@@ -25,6 +37,14 @@ function App() {
               Explore
             </NavLink>
           </div>
+
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            <div className="theme-toggle-thumb"></div>
+          </button>
         </nav>
 
         <Routes>
