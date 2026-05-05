@@ -1,152 +1,121 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import HackathonCard from '../components/HackathonCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const Home = () => {
-  const [hackathons, setHackathons] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterPlatform, setFilterPlatform] = useState('');
-  const [filterMode, setFilterMode] = useState('');
+  const [topHackathons, setTopHackathons] = useState([]);
+  const [insights, setInsights] = useState({
+    total: 0,
+    platforms: 0,
+    online: 0,
+    upcoming: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    fetchHackathons();
+    const timer = setTimeout(async () => {
+      try {
+        const [hackathonsResponse, topResponse] = await Promise.all([
+          axios.get(`${API_BASE_URL}/hackathons`),
+          axios.get(`${API_BASE_URL}/top?limit=6`),
+        ]);
+
+        const data = hackathonsResponse.data.data || [];
+        setInsights(hackathonsResponse.data.insights || {
+          total: data.length,
+          platforms: 0,
+          online: 0,
+          upcoming: 0,
+        });
+        setTopHackathons(topResponse.data.data || data.slice(0, 6));
+      } catch (error) {
+        console.error('Error fetching homepage data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  const fetchHackathons = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/hackathons`);
-      const data = response.data.data || [];
-      setHackathons(data);
-      setTotalCount(response.data.count || data.length);
-    } catch (error) {
-      console.error('Error fetching hackathons:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      return fetchHackathons();
-    }
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/search?q=${encodeURIComponent(searchQuery)}`);
-      const data = response.data.data || [];
-      setHackathons(data);
-      setTotalCount(response.data.count || data.length);
-      setFilterPlatform('');
-      setFilterMode('');
-    } catch (error) {
-      console.error('Error searching:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFilter = async (platform, mode) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (platform) params.append('platform', platform);
-      if (mode) params.append('mode', mode);
-
-      const response = await axios.get(`${API_BASE_URL}/filter?${params.toString()}`);
-      const data = response.data.data || [];
-      setHackathons(data);
-      setTotalCount(response.data.count || data.length);
-    } catch (error) {
-      console.error('Error filtering:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onPlatformChange = (e) => {
-    const val = e.target.value;
-    setFilterPlatform(val);
-    setSearchQuery('');
-    handleFilter(val, filterMode);
-  };
-
-  const onModeChange = (e) => {
-    const val = e.target.value;
-    setFilterMode(val);
-    setSearchQuery('');
-    handleFilter(filterPlatform, val);
-  };
-
   return (
-    <div className="container">
-      <header className="header">
-        <h1>HackHunt</h1>
-        <p>Find hackathons from multiple platforms in one place.</p>
-        <div className="stats-bar">
-          <div className="stat-item">
-            <span className="stat-number">{totalCount}</span> hackathons found
+    <main>
+      <section className="hero">
+        <div className="hero-copy">
+          <div className="eyebrow">Multi-platform hackathon finder</div>
+          <h1>Find the next build sprint worth your weekend.</h1>
+          <p>
+            Discover top hackathons from Devfolio, Unstop, Hack2Skill, Devpost,
+            MLH, and HackerEarth with deadlines, modes, and quick application links.
+          </p>
+          <div className="hero-actions">
+            <Link className="primary-link" to="/explore">Explore hackathons</Link>
+            <Link className="secondary-link" to="/calendar">Open calendar</Link>
           </div>
         </div>
-      </header>
 
-      <div className="controls-section">
-        <form onSubmit={handleSearch} className="search-bar">
-          <input
-            type="text"
-            placeholder="Search hackathons..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button type="submit">Search</button>
-        </form>
-
-        <div className="filters">
-          <select value={filterPlatform} onChange={onPlatformChange}>
-            <option value="">All Platforms</option>
-            <option value="Devfolio">Devfolio</option>
-            <option value="Unstop">Unstop</option>
-            <option value="Hack2Skill">Hack2Skill</option>
-            <option value="Devpost">Devpost</option>
-            <option value="MLH">MLH</option>
-            <option value="HackerEarth">HackerEarth</option>
-          </select>
-
-          <select value={filterMode} onChange={onModeChange}>
-            <option value="">All Modes</option>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-            <option value="hybrid">Hybrid</option>
-          </select>
+        <div className="hero-panel" aria-label="Hackathon summary">
+          <div className="panel-header">
+            <span>Live index</span>
+            <strong>{insights.total}</strong>
+          </div>
+          <div className="metric-grid">
+            <div className="metric">
+              <span>{insights.platforms}</span>
+              <p>Platforms</p>
+            </div>
+            <div className="metric">
+              <span>{insights.upcoming}</span>
+              <p>Dated deadlines</p>
+            </div>
+            <div className="metric">
+              <span>{insights.online}</span>
+              <p>Online</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <main className="content">
+      <section className="section">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Top picks</span>
+            <h2>Top hackathons</h2>
+          </div>
+          <Link className="text-button" to="/explore">View all</Link>
+        </div>
+
         {loading ? (
-          <div className="loading">
-            <div className="loading-spinner"></div>
-            <span className="loading-text">Loading...</span>
-          </div>
-        ) : hackathons.length > 0 ? (
-          <div className="grid">
-            {hackathons.map(hk => (
-              <HackathonCard key={hk._id} hackathon={hk} />
+          <LoadingState />
+        ) : topHackathons.length > 0 ? (
+          <div className="featured-grid">
+            {topHackathons.map((hk) => (
+              <HackathonCard key={hk._id} hackathon={hk} featured />
             ))}
           </div>
         ) : (
-          <div className="no-results">
-            <div className="no-results-icon">🔍</div>
-            <div className="no-results-title">No hackathons found</div>
-            <div className="no-results-subtitle">Try changing your search or filters.</div>
-          </div>
+          <EmptyState title="No top hackathons yet" subtitle="Run the scraper or add hackathon data to populate this page." />
         )}
-      </main>
-    </div>
+      </section>
+    </main>
   );
 };
+
+const LoadingState = () => (
+  <div className="loading">
+    <div className="loading-spinner"></div>
+    <span className="loading-text">Loading hackathons</span>
+  </div>
+);
+
+const EmptyState = ({ title, subtitle }) => (
+  <div className="no-results">
+    <div className="no-results-title">{title}</div>
+    <div className="no-results-subtitle">{subtitle}</div>
+  </div>
+);
 
 export default Home;

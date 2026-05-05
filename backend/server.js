@@ -20,6 +20,7 @@ app.use(cors({
     // Allow requests with no origin (Postman, curl, etc.)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -34,9 +35,14 @@ app.get('/', (req, res) => {
     message: 'HackHunt API is running 🚀',
     endpoints: [
       'GET /api/hackathons',
+      'GET /api/top?limit=<number>',
+      'GET /api/calendar',
+      'POST /api/calendar/:id/save',
+      'GET /api/calendar/:id/ics',
       'GET /api/search?q=<query>',
       'GET /api/filter?platform=<platform>&mode=<mode>',
       'GET /api/refresh',
+      'POST /api/refresh',
     ],
   });
 });

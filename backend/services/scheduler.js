@@ -16,9 +16,32 @@ async function updateDatabase() {
 
     for (const item of data) {
       try {
+        if (!item.title || !item.link) continue;
+
+        const setData = {
+          title: item.title,
+          platform: item.platform,
+          link: item.link,
+          mode: item.mode || 'online',
+          tags: Array.isArray(item.tags) ? item.tags : [],
+        };
+
+        const setOnInsert = {};
+        if (item.deadline && item.deadline !== 'Unknown') {
+          setData.deadline = item.deadline;
+        } else {
+          setOnInsert.deadline = 'Unknown';
+        }
+
+        if (item.startDate && item.startDate !== 'Unknown') {
+          setData.startDate = item.startDate;
+        } else {
+          setOnInsert.startDate = 'Unknown';
+        }
+
         await Hackathon.findOneAndUpdate(
           { link: item.link },
-          item,
+          { $set: setData, $setOnInsert: setOnInsert },
           { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
         );
         successCount++;
