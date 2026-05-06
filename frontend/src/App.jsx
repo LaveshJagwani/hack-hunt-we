@@ -37,6 +37,9 @@ function App() {
               <NavLink className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} to="/home">
                 Home
               </NavLink>
+              <NavLink className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} to="/explore">
+                Explore
+              </NavLink>
               <NavLink className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} to="/calendar">
                 Calendar
               </NavLink>
@@ -58,6 +61,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/my-hackathons" element={<MyHackathons />} />
           <Route path="/host" element={<Host />} />

@@ -10,43 +10,34 @@ const MyHackathons = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMyHackathons = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const myIds = JSON.parse(localStorage.getItem('my_hackathons') || '[]');
-        if (myIds.length === 0) {
-          setHackathons([]);
-          setLoading(false);
-          return;
-        }
-
-        const response = await axios.get(`${API_BASE_URL}/hackathons`);
-        const allHackathons = response.data.data || [];
-        
-        // Filter hackathons that are in the user's localStorage list
-        const filtered = allHackathons.filter(h => myIds.includes(h._id));
-        setHackathons(filtered);
+        // Fetch Saved Hackathons (those marked savedToCalendar in DB)
+        const savedRes = await axios.get(`${API_BASE_URL}/calendar?saved=true`);
+        setHackathons(savedRes.data.data || []);
       } catch (error) {
-        console.error('Error fetching my hackathons:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMyHackathons();
+    fetchData();
   }, []);
 
   return (
     <div className="my-hackathons-page">
       <header className="page-header">
-        <span className="eyebrow">Dashboard</span>
-        <h1>My Hackathons</h1>
-        <p>Manage and track the hackathons you have posted on the platform.</p>
+        <span className="eyebrow">Personal Dashboard</span>
+        <h1>Saved Hackathons</h1>
+        <p>Keep track of events you have saved from the explore page.</p>
       </header>
 
       {loading ? (
         <div className="loading">
           <div className="loading-spinner"></div>
-          <span className="loading-text">Loading your events</span>
+          <span className="loading-text">Loading your saved events</span>
         </div>
       ) : hackathons.length > 0 ? (
         <div className="grid">
@@ -56,10 +47,10 @@ const MyHackathons = () => {
         </div>
       ) : (
         <div className="empty-state">
-          <div className="empty-icon">📁</div>
-          <h2>No hackathons found</h2>
-          <p>You haven't posted any hackathons yet. Start by hosting your first event!</p>
-          <a href="/host" className="primary-link">Host a Hackathon</a>
+          <div className="empty-icon">🔖</div>
+          <h2>No saved hackathons</h2>
+          <p>You haven't saved any hackathons yet. Explore and add some to your calendar!</p>
+          <a href="/explore" className="primary-link">Explore Hackathons</a>
         </div>
       )}
     </div>

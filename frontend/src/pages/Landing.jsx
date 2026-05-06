@@ -15,7 +15,7 @@ const Landing = () => {
         </header>
 
         <main className="landing-grid">
-          <Link to="/home" className="landing-card search-card">
+          <Link to="/explore" className="landing-card search-card">
             <div className="card-content">
               <span className="card-icon">🔍</span>
               <h2>Look for Hackathons</h2>

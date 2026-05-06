@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import HackathonCard from '../components/HackathonCard';
 import './Host.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const Host = () => {
+  const [createdHackathons, setCreatedHackathons] = useState([]);
+  const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     platform: '',
@@ -16,6 +19,24 @@ const Host = () => {
 
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
+
+  const fetchCreated = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/hackathons`);
+      const allHackathons = response.data.data || [];
+      const createdIds = JSON.parse(localStorage.getItem('my_hackathons') || '[]');
+      const filtered = allHackathons.filter(h => createdIds.includes(h._id));
+      setCreatedHackathons(filtered);
+    } catch (error) {
+      console.error('Error fetching created hackathons:', error);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCreated();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,6 +70,7 @@ const Host = () => {
         link: '',
         tags: '',
       });
+      fetchCreated(); // Refresh the list
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Failed to post hackathon. Please try again.';
       setStatus({ type: 'error', message: errorMsg });
@@ -150,6 +172,29 @@ const Host = () => {
             {loading ? 'Posting...' : 'Post Hackathon'}
           </button>
         </form>
+
+        <section className="hosted-list-section">
+          <div className="section-header">
+            <h2>Your Hosted Hackathons</h2>
+            <p>Hackathons you have previously listed on HackHunt.</p>
+          </div>
+
+          {fetching ? (
+            <div className="loading-small">
+              <div className="loading-spinner"></div>
+            </div>
+          ) : createdHackathons.length > 0 ? (
+            <div className="grid">
+              {createdHackathons.map((hk) => (
+                <HackathonCard key={hk._id} hackathon={hk} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-hosted">
+              <p>You haven't hosted any hackathons yet. Use the form above to get started!</p>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
